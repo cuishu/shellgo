@@ -47,12 +47,6 @@ func (help *Help) Help() string {
 }
 
 func (help *Help) AutoComplete(line []rune, pos int) (newLine [][]rune, length int) {
-	if pos == 0 {
-		for k := range help.Env.BuiltinCmd {
-			newLine = append(newLine, []rune(k))
-		}
-		return
-	}
 	for k := range help.Env.BuiltinCmd {
 		if string(line) == k {
 			return [][]rune{[]rune(" ")}, pos

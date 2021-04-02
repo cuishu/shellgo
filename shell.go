@@ -36,12 +36,6 @@ type completer struct{}
 
 func (c *completer) Do(line []rune, pos int) (newLine [][]rune, length int) {
 	length = pos
-	if pos == 0 {
-		for k := range env.BuiltinCmd {
-			newLine = append(newLine, []rune(k))
-		}
-		return
-	}
 	for k, cmd := range env.BuiltinCmd {
 		if strings.Index(string(line), k+" ") == 0 {
 			s := []rune(strings.TrimLeft(string(line[len(k+" "):]), " "))
@@ -73,7 +67,9 @@ func Run(conf Config) {
 		r.SetPrompt(conf.Prompt.String())
 
 		if line, err := r.Readline(); err != nil {
-			os.Exit(0)
+			if err != readline.ErrInterrupt {
+				os.Exit(0)
+			}
 		} else {
 			var slice []string
 			for _, s := range strings.Split(line, " ") {

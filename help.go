@@ -11,7 +11,7 @@ type Help struct {
 	recentCallTime time.Time
 }
 
-func (help *Help) Call(args []string) string {
+func (help *Help) Call(args []string) int {
 	defer func() { help.recentCallTime = time.Now() }()
 	if help.recentCallTime.Add(time.Second).After(time.Now()) && len(args) == 0 {
 		fmt.Println(`|   \_____/   |
@@ -21,7 +21,7 @@ func (help *Help) Call(args []string) string {
    /   \o/   \
    \___/"\___/`)
 		fmt.Println("You really need help")
-		return ""
+		return 0
 	}
 	if len(args) == 0 {
 		for _, v := range help.Env.BuiltinCmd {
@@ -34,11 +34,11 @@ func (help *Help) Call(args []string) string {
 		cmd, ok := help.Env.BuiltinCmd[args[0]]
 		if !ok {
 			fmt.Println(args[0], "not found")
-			return "1"
+			return 1
 		}
 		fmt.Println(cmd.Help())
 	}
-	return ""
+	return 0
 }
 
 func (help *Help) Help() string {
@@ -48,9 +48,6 @@ func (help *Help) Help() string {
 
 func (help *Help) AutoComplete(line []rune, pos int) (newLine [][]rune, length int) {
 	for k := range help.Env.BuiltinCmd {
-		if string(line) == k {
-			return [][]rune{[]rune(" ")}, pos
-		}
 		if n := strings.Index(k, string(line)); n == 0 {
 			newLine = append(newLine, []rune(k[pos:]+" "))
 		}

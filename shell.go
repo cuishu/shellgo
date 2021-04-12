@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
+	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/chzyer/readline"
 )
@@ -12,6 +15,9 @@ import (
 var env *Env
 
 func doExec(conf *Config, slice []string) {
+	if slice[0] == "exit" {
+		os.Exit(0)
+	}
 	env.ErrMesg = ""
 	cmd, ok := env.BuiltinCmd[slice[0]]
 	if !ok {
@@ -29,7 +35,17 @@ func doExec(conf *Config, slice []string) {
 		}
 		return
 	}
-	env.ErrMesg = cmd.Call(slice[1:])
+	env.cid, _, _ = syscall.RawSyscall(syscall.SYS_FORK, 0, 0, 0)
+	if env.cid == 0 {
+		os.Exit(cmd.Call(slice[1:]))
+	} else {
+		var ws syscall.WaitStatus
+		syscall.Wait4(int(env.cid), &ws, 0, nil)
+		if ws.ExitStatus() != 0 {
+			env.ErrMesg = strconv.FormatInt(int64(ws.ExitStatus()), 10)
+		}
+		env.cid = 0
+	}
 }
 
 type completer struct{}
@@ -54,6 +70,15 @@ func (c *completer) Do(line []rune, pos int) (newLine [][]rune, length int) {
 }
 
 func Run(conf Config) {
+	signal.Notify(env.interrupt, os.Interrupt)
+	go func() {
+		for {
+			<-env.interrupt
+			if env.cid != 0 {
+				syscall.Kill(int(env.cid), syscall.SIGKILL)
+			}
+		}
+	}()
 	r, err := readline.NewEx(&readline.Config{
 		InterruptPrompt:   "^C",
 		EOFPrompt:         "exit",
@@ -69,6 +94,11 @@ func Run(conf Config) {
 		if line, err := r.Readline(); err != nil {
 			if err != readline.ErrInterrupt {
 				os.Exit(0)
+			} else {
+				select {
+				case env.interrupt <- os.Kill:
+				default:
+				}
 			}
 		} else {
 			var slice []string

@@ -1,7 +1,9 @@
 package shellgo
 
+import "os"
+
 type Command interface {
-	Call([]string) string
+	Call([]string) int
 	Help() string
 	AutoComplete(line []rune, pos int) (newLine [][]rune, length int)
 }
@@ -18,6 +20,8 @@ type Config struct {
 type Env struct {
 	ErrMesg    string
 	BuiltinCmd map[string]Command
+	interrupt  chan os.Signal
+	cid        uintptr
 }
 
 func (env *Env) AddBuiltinCmd(name string, cmd Command) {
@@ -30,7 +34,7 @@ func GetEnv() *Env {
 
 func init() {
 	env = &Env{}
+	env.interrupt = make(chan os.Signal)
 	env.BuiltinCmd = make(map[string]Command)
-	env.AddBuiltinCmd("exit", &Exit{})
 	env.AddBuiltinCmd("help", &Help{Env: env})
 }

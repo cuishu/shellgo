@@ -3,7 +3,7 @@ package shellgo
 import "os"
 
 type Command interface {
-	Call([]string) int
+	Call([]string) string
 	Help() string
 	AutoComplete(line []rune, pos int) (newLine [][]rune, length int)
 }

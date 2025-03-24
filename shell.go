@@ -35,7 +35,7 @@ func doExec(conf *Config, slice []string) {
 		}
 		return
 	}
-	env.cid, _, _ = syscall.RawSyscall(syscall.SYS_FORK, 0, 0, 0)
+	env.cid, _, _ = syscall.RawSyscall(syscall.SYS_CLONE, 0, 0, 0)
 	if env.cid == 0 {
 		ioutil.WriteFile(fmt.Sprintf("%s/%d.out", os.TempDir(), os.Getpid()), []byte(cmd.Call(slice[1:])), 0600)
 		os.Exit(0)

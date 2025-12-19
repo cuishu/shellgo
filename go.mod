@@ -1,10 +1,7 @@
 module github.com/cuishu/shellgo
 
-go 1.16
+go 1.25.4
 
-require (
-	github.com/chzyer/logex v1.1.10 // indirect
-	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
-	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
-	golang.org/x/sys v0.0.0-20210326220804-49726bf1d181 // indirect
-)
+require github.com/chzyer/readline v1.5.1
+
+require golang.org/x/sys v0.39.0 // indirect

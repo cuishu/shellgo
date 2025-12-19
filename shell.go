@@ -2,7 +2,6 @@ package shellgo
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -37,13 +36,13 @@ func doExec(conf *Config, slice []string) {
 	}
 	env.cid, _, _ = syscall.RawSyscall(syscall.SYS_CLONE, 0, 0, 0)
 	if env.cid == 0 {
-		ioutil.WriteFile(fmt.Sprintf("%s/%d.out", os.TempDir(), os.Getpid()), []byte(cmd.Call(slice[1:])), 0600)
+		os.WriteFile(fmt.Sprintf("%s/%d.out", os.TempDir(), os.Getpid()), []byte(cmd.Call(slice[1:])), 0600)
 		os.Exit(0)
 	} else {
 		var ws syscall.WaitStatus
 		syscall.Wait4(int(env.cid), &ws, 0, nil)
 		filename := fmt.Sprintf("%s/%d.out", os.TempDir(), env.cid)
-		data, err := ioutil.ReadFile(filename)
+		data, err := os.ReadFile(filename)
 		if err == nil {
 			os.Remove(filename)
 			env.ErrMesg = string(data)

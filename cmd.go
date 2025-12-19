@@ -14,6 +14,7 @@ type Prompt interface {
 
 type Config struct {
 	UseSysCmd bool
+	ForkCmd   bool
 	Prompt    Prompt
 }
 

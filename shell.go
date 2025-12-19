@@ -34,20 +34,24 @@ func doExec(conf *Config, slice []string) {
 		}
 		return
 	}
-	env.cid, _, _ = syscall.RawSyscall(syscall.SYS_CLONE, 0, 0, 0)
-	if env.cid == 0 {
-		os.WriteFile(fmt.Sprintf("%s/%d.out", os.TempDir(), os.Getpid()), []byte(cmd.Call(slice[1:])), 0600)
-		os.Exit(0)
-	} else {
-		var ws syscall.WaitStatus
-		syscall.Wait4(int(env.cid), &ws, 0, nil)
-		filename := fmt.Sprintf("%s/%d.out", os.TempDir(), env.cid)
-		data, err := os.ReadFile(filename)
-		if err == nil {
-			os.Remove(filename)
-			env.ErrMesg = string(data)
+	if conf.ForkCmd {
+		env.cid, _, _ = syscall.RawSyscall(syscall.SYS_CLONE, 0, 0, 0)
+		if env.cid == 0 {
+			os.WriteFile(fmt.Sprintf("%s/%d.out", os.TempDir(), os.Getpid()), []byte(cmd.Call(slice[1:])), 0600)
+			os.Exit(0)
+		} else {
+			var ws syscall.WaitStatus
+			syscall.Wait4(int(env.cid), &ws, 0, nil)
+			filename := fmt.Sprintf("%s/%d.out", os.TempDir(), env.cid)
+			data, err := os.ReadFile(filename)
+			if err == nil {
+				os.Remove(filename)
+				env.ErrMesg = string(data)
+			}
+			env.cid = 0
 		}
-		env.cid = 0
+	} else {
+		env.ErrMesg = cmd.Call(slice[1:])
 	}
 }
 

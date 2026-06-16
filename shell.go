@@ -16,12 +16,27 @@ type Shell struct {
 	conf Config
 }
 
+type prompt struct {
+	env *Env
+	count int
+}
+
+
+func (p *prompt) String() string {
+	p.count++
+	var errmesg string
+	if p.env.ErrMesg != "" {
+		errmesg = fmt.Sprintf(" \033[0;31m[%s]\033[0m", p.env.ErrMesg)
+	}
+	return fmt.Sprintf("\033[0;35mshell-go \033[1;32m%d\033[0m%s$ ", p.count, errmesg)
+}
+
 func NewShell() *Shell {
 	env := &Env{}
 	env.interrupt = make(chan os.Signal)
 	env.BuiltinCmd = make(map[string]Command)
 	env.AddBuiltinCmd("help", &Help{Env: env})
-	return &Shell{env: env}
+	return &Shell{env: env, conf: Config{Prompt: &prompt{env: env}}}
 }
 
 func (s *Shell) AddBuiltinCmd(name string, cmd Command) {

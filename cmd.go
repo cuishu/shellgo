@@ -28,14 +28,3 @@ type Env struct {
 func (env *Env) AddBuiltinCmd(name string, cmd Command) {
 	env.BuiltinCmd[name] = cmd
 }
-
-func GetEnv() *Env {
-	return env
-}
-
-func init() {
-	env = &Env{}
-	env.interrupt = make(chan os.Signal)
-	env.BuiltinCmd = make(map[string]Command)
-	env.AddBuiltinCmd("help", &Help{Env: env})
-}
